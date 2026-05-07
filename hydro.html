@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HydroHabit - A premium hydration tracking application.">
+    <meta name="theme-color" content="#3498db">
+    <title>HydroHabit</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 384 512%22><path fill=%22%233498db%22 d=%22M192 512C85.96 512 0 426.04 0 320C0 228.8 130.2 57.31 181.6 4.7C186.1-.2 197.9-.2 202.4 4.7C253.8 57.31 384 228.8 384 320C384 426.04 298.04 512 192 512z%22/></svg>" type="image/svg+xml">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- EmailJS for Gmail Notifications -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function () {
+            // Initialize EmailJS with your Public Key
+            emailjs.init("YOUR_PUBLIC_KEY");
+        })();
+    </script>
+    <link rel="stylesheet" href="hydro.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+    <!-- Animated Background Bubbles -->
+    <div class="bg-bubbles">
+        <i class="fa-solid fa-droplet bubble"></i>
+        <i class="fa-solid fa-droplet bubble"></i>
+        <i class="fa-solid fa-droplet bubble"></i>
+        <i class="fa-solid fa-droplet bubble"></i>
+        <i class="fa-solid fa-droplet bubble"></i>
+        <i class="fa-solid fa-droplet bubble"></i>
+        <i class="fa-solid fa-droplet bubble"></i>
+        <i class="fa-solid fa-droplet bubble"></i>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="navbar glass">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fa-solid fa-droplet"></i>
+                <span>HydroHabit</span>
+            </div>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#dashboard" class="nav-item" id="nav-dashboard">Dashboard</a></li>
+                <li><a href="#history" class="nav-item" id="nav-history">History</a></li>
+                <li><a href="#health-links" class="nav-item" id="nav-resources">Resources</a></li>
+                <li><a href="#about" class="nav-item" id="nav-about">About</a></li>
+                <li><button id="logout-btn" class="logout-btn" style="display: none;"><i
+                            class="fa-solid fa-right-from-bracket"></i> Logout</button></li>
+            </ul>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Authentication Section (Visible when not logged in) -->
+    <section id="auth-section" class="section auth-section">
+        <div class="auth-card glass">
+            <div class="water-icon-large"><i class="fa-solid fa-hand-holding-droplet"></i></div>
+            <h2 id="auth-title">Welcome to HydroHabit</h2>
+            <p id="auth-subtitle">Sign up to start your hydration journey</p>
+
+            <form id="auth-form">
+                <div id="signup-fields">
+                    <div class="input-group">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="auth-name" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <i class="fa-solid fa-venus-mars"></i>
+                            <select id="auth-gender" required>
+                                <option value="" disabled selected>Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-calendar"></i>
+                            <input type="number" id="auth-age" placeholder="Age" min="10" max="120" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-weight-scale"></i>
+                        <input type="number" id="auth-weight" placeholder="Weight (kg)" min="20" max="300" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="auth-email" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="auth-password" placeholder="Password" required>
+                </div>
+
+                <button type="submit" class="btn primary-btn w-100" id="auth-submit-btn">Create Account</button>
+            </form>
+
+            <p class="auth-switch">
+                <span id="auth-switch-text">Already have an account?</span>
+                <button type="button" id="auth-switch-btn" class="link-btn">Login</button>
+            </p>
+        </div>
+        <!-- Background Waves -->
+        <div class="wave-bg">
+            <div class="wave wave1"></div>
+            <div class="wave wave2"></div>
+            <div class="wave wave3"></div>
+        </div>
+    </section>
+
+    <!-- Main App Container (Hidden until logged in) -->
+    <main id="main-app" style="display: none;">
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section dashboard-section">
+            <div class="welcome-header">
+                <h1 id="user-greeting">Hello, User 👋</h1>
+                <p class="current-date" id="current-date">Loading date...</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Water Tracker Visual -->
+                <div class="tracker-card glass">
+                    <div class="card-header">
+                        <h2>Daily Goal</h2>
+                        <button id="reset-today-btn" class="icon-btn" title="Reset Today"><i
+                                class="fa-solid fa-rotate-right"></i></button>
+                    </div>
+
+                    <div class="bottle-container">
+                        <div class="bottle">
+                            <div class="water-fill" id="water-fill" style="height: 0%;">
+                                <div class="water-wave-anim"></div>
+                            </div>
+                        </div>
+                        <div class="percentage-display" id="progress-percentage">0%</div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <i class="fa-solid fa-bullseye color-primary"></i>
+                            <div>
+                                <span>Goal</span>
+                                <strong id="daily-goal-text">0 ml</strong>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fa-solid fa-glass-water color-success"></i>
+                            <div>
+                                <span>Intake</span>
+                                <strong id="current-intake-text">0 ml</strong>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fa-solid fa-clock color-warning"></i>
+                            <div>
+                                <span>Remaining</span>
+                                <strong id="remaining-text">0 ml</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="motivation-text" id="motivation-text">Let's start hydrating!</p>
+                </div>
+
+                <!-- Add Water Controls -->
+                <div class="controls-card glass">
+                    <h2>Log Intake</h2>
+                    <p class="subtitle">Select an amount or enter custom.</p>
+
+                    <div class="quick-add-grid">
+                        <button class="add-btn glass-btn" data-amount="150">
+                            <i class="fa-solid fa-cup-water"></i>
+                            <span>150 ml</span>
+                            <small>Small Cup</small>
+                        </button>
+                        <button class="add-btn glass-btn" data-amount="250">
+                            <i class="fa-solid fa-glass-water"></i>
+                            <span>250 ml</span>
+                            <small>Glass</small>
+                        </button>
+                        <button class="add-btn glass-btn" data-amount="500">
+                            <i class="fa-solid fa-bottle-water"></i>
+                            <span>500 ml</span>
+                            <small>Bottle</small>
+                        </button>
+                        <button class="add-btn glass-btn" data-amount="1000">
+                            <i class="fa-solid fa-jug-detergent"></i>
+                            <span>1000 ml</span>
+                            <small>Jug</small>
+                        </button>
+                    </div>
+
+                    <div class="custom-add">
+                        <input type="number" id="custom-amount" placeholder="Custom (ml)" min="1">
+                        <button id="custom-add-btn" class="btn primary-btn">Add</button>
+                    </div>
+
+                    <div class="voice-add">
+                        <button id="voice-btn" class="btn outline-btn"><i class="fa-solid fa-microphone"></i> Voice
+                            Input</button>
+                    </div>
+                </div>
+
+                <!-- BMI Calculator -->
+                <div class="bmi-card glass">
+                    <h2>BMI Calculator</h2>
+                    <p class="subtitle">Check your Body Mass Index</p>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <input type="number" id="bmi-height" placeholder="Height (cm)">
+                        </div>
+                        <div class="input-group">
+                            <input type="number" id="bmi-weight-input" placeholder="Weight (kg)">
+                        </div>
+                    </div>
+                    <button id="calc-bmi-btn" class="btn primary-btn w-100">Calculate</button>
+                    <div class="bmi-result" id="bmi-result" style="display: none;">
+                        <p>Your BMI: <span id="bmi-score">22.5</span></p>
+                        <div class="bmi-badge" id="bmi-badge">Normal</div>
+                    </div>
+                </div>
+            </div> 
+
+        </section>
+
+        <!-- History Section -->
+        <section id="history" class="section history-section">
+            <h2 class="section-title">Hydration History</h2>
+
+            
+            <div class="history-card glass">
+                <div class="chart-controls">
+                    <button class="chart-btn active" data-view="weekly">Weekly</button>
+                    <button class="chart-btn" data-view="monthly">Monthly</button>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="hydrationChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Health Resources -->
+        <section id="health-links" class="section links-section view-section">
+            <h2 class="section-title">Health Resources</h2>
+            <div class="links-grid">
+                <a href="https://www.who.int/news-room/fact-sheets/detail/healthy-diet" target="_blank"
+                    class="resource-card glass">
+                    <i class="fa-solid fa-apple-whole"></i>
+                    <h3>Diet Plans</h3>
+                    <p>WHO guidelines for a healthy diet.</p>
+                </a>
+                <a href="https://www.cdc.gov/healthyweight/healthy_eating/water-and-healthier-drinks.html"
+                    target="_blank" class="resource-card glass">
+                    <i class="fa-solid fa-droplet"></i>
+                    <h3>Hydration</h3>
+                    <p>CDC benefits of drinking water.</p>
+                </a>
+                <a href="https://www.hsph.harvard.edu/nutritionsource/" target="_blank" class="resource-card glass">
+                    <i class="fa-solid fa-leaf"></i>
+                    <h3>Nutrition</h3>
+                    <p>Harvard's Nutrition Source.</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Feedback Section (Hidden by default, acts as a new page) -->
+        <section id="feedback-page" class="section feedback-section" style="display: none;">
+            <h2 class="section-title">We Value Your Feedback</h2>
+            <div class="feedback-card glass">
+                <i class="fa-solid fa-comment-dots feedback-icon"></i>
+                <p class="text-muted feedback-subtitle">Help us improve AquaTrack by sharing your
+                    thoughts.</p>
+
+                <form id="feedback-form">
+                    <div class="star-rating text-muted" id="star-rating">
+                        <i class="fa-solid fa-star" data-value="1"></i>
+                        <i class="fa-solid fa-star" data-value="2"></i>
+                        <i class="fa-solid fa-star" data-value="3"></i>
+                        <i class="fa-solid fa-star" data-value="4"></i>
+                        <i class="fa-solid fa-star" data-value="5"></i>
+                    </div>
+
+                    <div class="input-group feedback-input-group">
+                        <textarea id="feedback-text" class="feedback-textarea" rows="5" placeholder="Write your suggestions or issues here..."
+                            required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn primary-btn w-100">Submit Feedback</button>
+                </form>
+                <button id="back-to-dashboard-btn" class="btn outline-btn w-100 btn-mt-1">Back to
+                    Dashboard</button>
+            </div>
+        </section>
+
+        <!-- About Section (Now on the main page) -->
+        <section id="about" class="section about-section view-section">
+            <h2 class="section-title">About HydroHabit</h2>
+            <div class="about-card glass">
+                <i class="fa-solid fa-circle-info about-icon"></i>
+                <h3 class="about-title">Your Ultimate Hydration Companion</h3>
+                <p class="text-muted about-text">
+                    HydrHabit is a premium, state-of-the-art hydration tracking web application designed to help you
+                    maintain a healthy lifestyle. Recognizing that adequate water intake is crucial for energy, focus,
+                    and overall well-being, we built a tool that is not only functional but beautiful and engaging.
+                </p>
+                <p class="text-muted about-text">
+                    By intelligently calculating your daily water needs based on your body weight, HydroHabit provides
+                    personalized goals. Our interactive dashboard features dynamic progress visualizations, historical
+                    charting to track your habits over time, and even a built-in BMI calculator for holistic health
+                    awareness.
+                </p>
+                <p class="text-muted about-text-last">
+                    Whether you're at your desk or on the go, HydroHabit is here to remind you that every drop counts
+                    towards a healthier you!
+                </p>
+                <div class="about-images">
+                    <img src="https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=600&q=80"
+                        alt="Glass of Clean Water - Drink Water" class="about-img">
+                </div>
+
+                <!-- Why HydroHabit Portion -->
+                <div class="why-section">
+                    <h3 class="why-title">Why
+                        HydroHabit?</h3>
+                    <div class="why-grid">
+
+                        <div class="feature-card">
+                            <h4 class="color-success feature-title"><i
+                                    class="fa-solid fa-bullseye"></i> Personalized for You</h4>
+                            <p class="text-muted feature-text">We calculate
+                                exactly how much water you need daily based on your weight and age.</p>
+                        </div>
+
+                        <div class="feature-card">
+                            <h4 class="color-primary feature-title"><i
+                                    class="fa-solid fa-face-smile"></i> Fun to Use</h4>
+                            <p class="text-muted feature-text">Watch the visual
+                                water bottle fill up as you drink! It makes tracking your habit engaging and enjoyable.
+                            </p>
+                        </div>
+
+                        <div class="feature-card">
+                            <h4 class="color-warning feature-title"><i
+                                    class="fa-solid fa-bookmark"></i> Never Forget</h4>
+                            <p class="text-muted feature-text">Bookmark this
+                                page or keep the tab pinned. You can also use our <strong>Email Reminder</strong> button
+                                to get a friendly prompt if you forget!</p>
+                            <button id="email-reminder-btn" class="btn primary-btn w-100 reminder-btn"><i
+                                    class="fa-solid fa-envelope"></i> Send Gmail Reminder</button>
+                        </div>
+
+                        <div class="feature-card">
+                            <h4 class="color-secondary feature-title"><i
+                                    class="fa-solid fa-shield-halved"></i> Private & Safe</h4>
+                            <p class="text-muted feature-text">All your
+                                hydration data is saved securely on your own device. We respect your privacy.</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" id="main-footer" style="display: none;">
+        <div class="footer-content">
+            <div class="brand"><i class="fa-solid fa-droplet"></i> HydroHabit</div>
+            <p>Designed for a healthier lifestyle. Drink more water.</p>
+            <div class="footer-feedback-container">
+                <button id="open-feedback-btn" class="btn primary-btn"><i class="fa-solid fa-comment"></i> Give
+                    Feedback</button>
+            </div>
+            <div class="social-share">
+                <span>Share your progress:</span>
+                <button class="share-btn twitter"><i class="fa-brands fa-twitter"></i></button>
+                <button class="share-btn whatsapp"><i class="fa-brands fa-whatsapp"></i></button>
+                <button class="share-btn facebook"><i class="fa-brands fa-facebook"></i></button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global UI Elements -->
+
+    <!-- Audio element for alerts -->
+    <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"
+        preload="auto"></audio>
+
+    <!-- Alerts Container -->
+    <div id="alerts-container" class="alerts-container"></div>
+
+    <!-- Motivational Quotes Container -->
+    <div id="quotes-container" class="quotes-container"></div>
+
+    <!-- AquaAdvisor Chatbot -->
+    <div class="chatbot-wrapper" id="chatbot-wrapper" style="display: none;">
+        <button id="chatbot-toggle" class="chatbot-toggle">
+            <i class="fa-solid fa-robot"></i>
+        </button>
+        <div id="chatbot-window" class="chatbot-window glass" style="display: none;">
+            <div class="chat-header">
+                <div>
+                    <i class="fa-solid fa-robot"></i>
+                    <span>AHydroCare</span>
+                </div>
+                <button id="close-chat" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    Hello! I'm HydroCare. Need hydration tips or have questions?
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Type here...">
+                <button id="send-chat-btn"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="loader-overlay" style="display: none;">
+        <div class="water-drop-loader"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script src="hydro.js"></script>
+</body>
+
+</html>
